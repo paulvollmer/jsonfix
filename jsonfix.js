@@ -214,8 +214,6 @@ function JSONTryFixParseError(input, err, cb) {
 
 
 function JSONTryFixParseError_EOF(input, err, cb) {
-  JSONFix.message = 'TODO: fix EOF';
-
   // check if last char is } or ]
   var lastChar = input[input.length-1];
   // console.warn('last char', lastChar);
@@ -241,7 +239,8 @@ function JSONTryFixParseError_EOF(input, err, cb) {
 }
 
 function JSONTryFixParseError_undefined(input, err, cb) {
-  console.info('call fixParseError_undefined');
+  DEBUG('call fixParseError_undefined');
+
   var inputLines = input.split('\n');
   // console.log('error at this line:', inputLines[err.line-1]);
   var tmp = inputLines[err.line-1].split(',');
@@ -268,7 +267,7 @@ function JSONTryFixParseError_CurlyBracket(input, err, cb) {
 
 
 
-  console.info('call fixParseError_CurlyBracket');
+  DEBUG('call fixParseError_CurlyBracket');
 
   var inputLines = input.split('\n');
   console.info('error at this line:', inputLines[err.line-1]);
@@ -298,21 +297,27 @@ function JSONTryFixParseError_CurlyBracket(input, err, cb) {
 }
 
 function JSONTryFixParseError_Colon(input, err, cb) {
-  JSONFix.message = 'TODO: Fix ":" errors';
+  if(err.expecting === "'EOF', '}', ',', ']'") {
+    var firstChar = input[0];
+    var lastChar = input[input.length-1];
+    console.log('firstChar', firstChar);
+    console.log('lastChar', lastChar);
 
-  var firstChar = input[0];
-  var lastChar = input[input.length-1];
-  console.log('firstChar', firstChar);
-  console.log('lastChar', lastChar);
+    // check if { is missing...
+    if(firstChar !== '{' && lastChar === '}') {
+      err.message = 'missing { at the beginning of the json';
+      var fixed = '{'+input;
+      err.fix = fixed;
+      cb(fixed);
+    }
 
-  // check if { is missing...
-  if(firstChar !== '{') {
-    console.log('missing { at the beginning of the json');
-  }
-
-  // check if [ is missing...
-  if(firstChar !== '[') {
-    console.log('missing [ at the beginning of the json');
+    // check if [ is missing...
+    if(firstChar !== '[' && lastChar === ']') {
+      err.message = 'missing [ at the beginning of the json';
+      var fixed = '['+input;
+      err.fix = fixed;
+      cb(fixed);
+    }
   }
 }
 
