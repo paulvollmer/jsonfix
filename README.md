@@ -3,6 +3,9 @@
 **this is experimental stuff! do not use in production  
 this tool cannot fix any kind of json bugs.**
 
+build on top of the awesome [jsonlint](https://github.com/zaach/jsonlint) parser.
+
+
 ## Usage
 
 clone the repository
