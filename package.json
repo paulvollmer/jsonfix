@@ -1,0 +1,17 @@
+{
+  "name": "jsonfix",
+  "version": "0.0.1",
+  "description": "jsonfix tool",
+  "keywords": [
+    "jsonfix",
+    "json",
+    "fix"
+  ],
+  "author": "paulvollmer",
+  "bin": {
+    "jsonfix": "./cli"
+  },
+  "dependencies": {
+    "jsonlint": "~1.6.2"
+  }
+}
