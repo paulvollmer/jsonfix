@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+var fs = require('fs');
+var JSONFix = require('./src/jsonfix');
+
+if(process.argv.length === 2) {
+  console.error('error: missing input file');
+} else if(process.argv.length === 3) {
+  var filepath = process.argv[2];
+  var data = fs.readFile(filepath, {encoding: 'utf8'}, function(err, data) {
+    if(err !== null) {
+      console.error('cannot read file "'+process.argv[2]+'"');
+      process.exit(1);
+    } else {
+      JSONFix.process(data);
+      console.log(JSON.stringify(JSONFix.result.data, null, 2));
+    }
+  });
+}
