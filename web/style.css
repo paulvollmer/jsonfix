@@ -1,0 +1,34 @@
+/*
+ * jsonfix/style.css
+ */
+
+#result, #result-stats {
+  background-color: white;
+}
+
+#result-message {
+  padding: 1em;
+}
+
+.pass {
+  background-color: #efe;
+  color: #393;
+  border: 2px solid #393;
+}
+
+.fixed {
+  background-color: #FFF5BF;
+  color: #DBA12C;
+  border: 2px solid #F8DE54;
+}
+
+.fail {
+  background-color: #fee;
+  color: #933;
+  border: 2px solid #933;
+}
+
+textarea {
+  font-family: monospace;
+  width: 100%;
+}

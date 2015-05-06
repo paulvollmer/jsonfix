@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>jsonfix</title>
+    <meta name="author" content="paul vollmer">
+    <script src="./assets/json2.js"></script>
+    <script src="./assets/jsonlint.js"></script>
+    <script src="../jsonfix.js"></script>
+    <script src="./app.js"></script>
+    <link rel="stylesheet" href="./assets/bootstrap.min.css">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="">jsonfix</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <!-- <ul class="nav navbar-nav">
+            <li><a href="/test">Tests</a></li>
+          </ul> -->
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+
+      <div class="row" style="margin-top: 50px;">
+        <div class="col-md-6">
+          <h2>Input Source <button class="btn btn-default" onClick="update()">Process</button></h2>
+          <textarea id="source" rows="10">{
+  "hello" "broken json"
+}</textarea>
+        </div>
+        <div class="col-md-6">
+          <h2>Fixed Result</h2>
+          <pre id="result"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <p>
+            <b>Result Message</b>
+            <pre id="result-message"></pre>
+          </p>
+          <p id="result-data"></p>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>
