@@ -1,5 +1,21 @@
 # jsonfix
 
-**this is experimental stuff! do not use in production**
+**this is experimental stuff! do not use in production  
+this tool cannot fix any kind of json bugs.**
 
-Demo: http://paulvollmer.github.io/jsonfix/web
+## Usage
+
+clone the repository
+
+    git clone https://github.com/paulvollmer/jsonfix.git
+
+cd into the directory
+
+    cd jsonfix
+
+fix some broken json data
+
+    ./cli test/fixture/broken.json
+
+## At the Browser
+You can find a demo at http://paulvollmer.github.io/jsonfix/web
