@@ -329,17 +329,30 @@ function JSONTryFixParseError_STRING(input, err, cb) {
   if(err.expecting === "'EOF', '}', ',', ']'") {
     err.message = 'missing comma';
     // console.log(err.messsage);
-    var fixed = inputLines[err.line-1]+',';
+    var fixed = fixMissingComma(inputLines[err.line-1]);
     err.fix = fixed;
     inputLines[err.line-1] = fixed;
   }
 
   else if(err.expecting === "'EOF', '}', ':', ',', ']'") {
-    err.message = 'missing :';
-    // console.log(err.message);
-    var tmpFixed = fixMissingColon(inputLines[err.line-1]);
-    err.fix = tmpFixed;
-    inputLines[err.line-1] = tmpFixed;
+    // is colon missing?
+    if(inputLines[err.line-1].indexOf(":") === -1) {
+      // console.log('cannot find colon');
+
+      err.message = 'missing :';
+      // console.log(err.message);
+      var tmpFixed = fixMissingColon(inputLines[err.line-1]);
+      err.fix = tmpFixed;
+      inputLines[err.line-1] = tmpFixed;
+    }
+
+    // is comma missing?
+    if(inputLines[err.line-1].indexOf(",") === -1) {
+      // console.log('cannot find ,');
+      var fixed = fixMissingComma(inputLines[err.line-1]);
+      err.fix = fixed;
+      inputLines[err.line-1] = fixed;
+    }
   }
 
   else {
@@ -358,5 +371,11 @@ function fixMissingColon(input) {
   // console.info('call fixMissingColon', input);
   var tmp = input.split('"');
   var fixedLine = tmp[0]+'"'+tmp[1]+'"'+ ':'+ /* the fix */ tmp[2]+'"'+tmp[3]+'"'+tmp[4];
+  // console.info('fixed', fixedLine);
   return fixedLine;
+}
+
+function fixMissingComma(input) {
+  // console.info('call fixMissingComma', input);
+  return input+',';
 }
