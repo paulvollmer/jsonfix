@@ -138,7 +138,7 @@ function removeComments(src) {
  */
 function JSONTryFix(src) {
   JSONFix.stats.totalTries++;
-  DEBUG('JSONTryFix totalTries =', JSONFix.stats.totalTries, ' <---', src);
+  DEBUG('JSONTryFix totalTries =', JSONFix.stats.totalTries, 'source:', src);
 
   // try to lint the source. we use this to get the jsonlint error and detect the bug.
   try {
@@ -175,7 +175,7 @@ function JSONTryFix(src) {
  */
 function JSONTryFixParseError(input, err, cb) {
   // console.log('call JSONTryFixParseError', input, err);
-  // console.info('try to fix "'+err.got+'"');
+  DEBUG('try to fix "'+err.got+'"');
 
   // error got...
   switch(err.got) {
@@ -196,12 +196,14 @@ function JSONTryFixParseError(input, err, cb) {
       break;
 
     case "STRING'":
-    // case "NUMBER'":
     // case "TRUE'":
     // case "FALSE'":
       JSONTryFixParseError_STRING(input, err, cb);
       break;
 
+    case "NUMBER'":
+      JSONTryFixParseError_NUMBER(input, err, cb);
+      break;
 
     default:
       JSONFix.wasFixed = false;
@@ -210,7 +212,6 @@ function JSONTryFixParseError(input, err, cb) {
       break;
   }
 }
-
 
 
 function JSONTryFixParseError_EOF(input, err, cb) {
@@ -314,9 +315,9 @@ function JSONTryFixParseError_Colon(input, err, cb) {
     // check if [ is missing...
     if(firstChar !== '[' && lastChar === ']') {
       err.message = 'missing [ at the beginning of the json';
-      var fixed = '['+input;
-      err.fix = fixed;
-      cb(fixed);
+      var fixed2 = '['+input;
+      err.fix = fixed2;
+      cb(fixed2);
     }
   }
 }
@@ -349,9 +350,9 @@ function JSONTryFixParseError_STRING(input, err, cb) {
     // is comma missing?
     if(inputLines[err.line-1].indexOf(",") === -1) {
       // console.log('cannot find ,');
-      var fixed = fixMissingComma(inputLines[err.line-1]);
-      err.fix = fixed;
-      inputLines[err.line-1] = fixed;
+      var fixed3 = fixMissingComma(inputLines[err.line-1]);
+      err.fix = fixed3;
+      inputLines[err.line-1] = fixed3;
     }
   }
 
@@ -365,6 +366,15 @@ function JSONTryFixParseError_STRING(input, err, cb) {
   cb(fixedResult);
   return fixedResult;
 }
+
+function JSONTryFixParseError_NUMBER(input, err, cb) {
+  DEBUG('call JSONTryFixParseError_NUMBER');
+
+  if(err.expecting === "'EOF', '}', ',', ']'") {
+
+  }
+}
+
 
 // fix missing :
 function fixMissingColon(input) {
