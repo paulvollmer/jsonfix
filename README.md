@@ -1,4 +1,4 @@
-# jsonfix
+# jsonfix [![Build Status](https://magnum.travis-ci.com/paulvollmer/jsonfix.svg?token=Wck9khUHkFjieXJypmaZ&branch=master)](https://magnum.travis-ci.com/paulvollmer/jsonfix)
 
 **this is experimental stuff! do not use in production  
 this tool cannot fix any kind of json bugs.**
