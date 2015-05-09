@@ -26,3 +26,7 @@ You can find a demo at http://paulvollmer.github.io/jsonfix/web
 
 ## Author
 Paul Vollmer
+
+
+## License
+[MIT](LICENSE)
