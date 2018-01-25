@@ -9,8 +9,18 @@
   ],
   "author": "paulvollmer",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulvollmer/jsonfix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paulvollmer/jsonfix/issues"
+  },
+  "homepage": "https://github.com/paulvollmer/jsonfix",
   "scripts": {
-    "test": "node node_modules/.bin/mocha"
+    "lint": "make lint",
+    "lint-fix": "make lint-fix",
+    "test": "make test"
   },
   "bin": {
     "jsonfix": "./cli"
@@ -19,9 +29,8 @@
     "jsonlint": "~1.6.2"
   },
   "devDependencies": {
-    "mocha": "~2.2.4",
-    "grunt": "~0.4.5",
-    "grunt-contrib-jshint": "~0.11.2",
-    "grunt-contrib-watch": "~0.6.1"
+    "eslint": "^4.16.0",
+    "eslint-config-google": "^0.9.1",
+    "mocha": "~2.2.4"
   }
 }
