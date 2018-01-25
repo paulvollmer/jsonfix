@@ -23,7 +23,7 @@
     "test": "make test"
   },
   "bin": {
-    "jsonfix": "./cli"
+    "jsonfix": "./cmd/jsonfix"
   },
   "dependencies": {
     "jsonlint": "~1.6.2"
