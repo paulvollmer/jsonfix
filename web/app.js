@@ -21,7 +21,8 @@ function update() {
     // }
   }
 
-  setResultData();
+  setResultData(JSONFix);
+  setResultViz(JSONFix.stats);
 }
 
 function setResult(text) {
@@ -35,18 +36,28 @@ function setResultMessage(text, type) {
   resultMessage.className = type;
 }
 
-function setResultData(stats) {
+function setResultData(data) {
   var resultData = document.getElementById('result-data');
-  var text = '<b>Result Data</b><br>'
-  text += 'JSONFix:<pre>'+JSON.stringify(JSONFix, null, 2)+'</pre>';
+  resultData.innerHTML = '<pre>'+JSON.stringify(data, null, 2)+'</pre>';
+}
 
-  // text += '<pre>'+JSON.stringify(JSONFixResult, null, 2)+'</pre>';
+function setResultViz(stats) {
+  var resultViz = document.getElementById('result-viz');
+  var text = ''
+  text += '<p>Total number of tries: '+stats.totalTries+'</p>'
 
-  // text += '<table class="table">';
-  // text += '<tr><td>total number of tries</td><td>'+JSONFix.stats.totalTries+'</td></tr>';
-  // text += '<tr><td>total number of errors</td><td>'+JSONFix.stats.errorList.length+'</td></tr>';
-  // text += '<tr><td>list of errors</td><td><pre>'+JSON.stringify(JSONFix.stats.errorList, null, 2)+'</pre></td></tr>';
-  // text += '</table>';
+  for (var i = 0; i < stats.errorList.length; i++) {
+    text += '<div>'
 
-  resultData.innerHTML = text;
+    text += '<p>'
+    text += '<b>' + (i+1) + '. Fix</b>'
+    text += ' expecting: <code>' + stats.errorList[i].expecting + '</code>'
+    text += ' got: <code>' + stats.errorList[i].got + '</code>'
+    text += '</p>'
+
+    text += '<pre>' + stats.errorList[i].fix + '</pre>'
+    text += '</div>'
+  }
+
+  resultViz.innerHTML = text;
 }

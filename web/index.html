@@ -5,6 +5,8 @@
     <meta name="author" content="paul vollmer">
     <script src="./assets/json2.js"></script>
     <script src="./assets/jsonlint.js"></script>
+    <script src="./assets/jquery.min.js"></script>
+    <script src="./assets/bootstrap.min.js"></script>
     <script src="../jsonfix.js"></script>
     <script src="./app.js"></script>
     <link rel="stylesheet" href="./assets/bootstrap.min.css">
@@ -28,7 +30,7 @@
 
       <div class="row" style="margin-top: 50px;">
         <div class="col-md-6">
-          <h2>Input Source <button class="btn btn-default" onClick="update()">Process</button></h2>
+          <h2>Input Source <button class="btn btn-info" onClick="update()">Process</button></h2>
           <textarea id="source" rows="10">{
   "hello": "broken json"
 
@@ -48,7 +50,33 @@
             <b>Result Message</b>
             <pre id="result-message"></pre>
           </p>
-          <p id="result-data"></p>
+        </div>
+      </div>
+
+      <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingOne">
+            <h4 class="panel-title">
+              <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Result
+              </a>
+            </h4>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+            <div class="panel-body" id="result-viz"></div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingThree">
+            <h4 class="panel-title">
+              <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                RAW Data
+              </a>
+            </h4>
+          </div>
+          <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+            <div class="panel-body" id="result-data"></div>
+          </div>
         </div>
       </div>
 
