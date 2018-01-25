@@ -271,18 +271,18 @@ function JSONTryFixParseError_CurlyBracket(input, err, cb) {
   DEBUG('call fixParseError_CurlyBracket');
 
   var inputLines = input.split('\n');
-  console.info('error at this line:', inputLines[err.line-1]);
+  // console.info('error at this line:', inputLines[err.line-1]);
 
   if(err.expecting === "'STRING'") {
-    console.log('too much "," ?');
+    // console.log('too much "," ?');
     // check if comma is last char
     var totalchars = inputLines[err.line-1].length;
     var lastChar = inputLines[err.line-1][totalchars-1];
-    console.log('totalchars:', totalchars);
-    console.log('lastChar:', lastChar);
+    // console.log('totalchars:', totalchars);
+    // console.log('lastChar:', lastChar);
 
     if(lastChar === ',') {
-      console.info('remove last char (,)');
+      // console.info('remove last char (,)');
       // fix it...
       inputLines[err.line-1] = inputLines[err.line-1].replace(',', '');
     }
@@ -301,8 +301,8 @@ function JSONTryFixParseError_Colon(input, err, cb) {
   if(err.expecting === "'EOF', '}', ',', ']'") {
     var firstChar = input[0];
     var lastChar = input[input.length-1];
-    console.log('firstChar', firstChar);
-    console.log('lastChar', lastChar);
+    // console.log('firstChar', firstChar);
+    // console.log('lastChar', lastChar);
 
     // check if { is missing...
     if(firstChar !== '{' && lastChar === '}') {
