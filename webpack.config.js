@@ -7,7 +7,7 @@ const webpack = require('webpack');
   entry: './src/jsonfix.js',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'main.build.js'
+    filename: 'main.build.js',
   },
   module: {
     loaders: [
@@ -15,20 +15,20 @@ const webpack = require('webpack');
         test: /\.js$/,
         loader: 'babel-loader',
         query: {
-          presets: ['es2015']
-        }
-      }
-    ]
+          presets: ['es2015'],
+        },
+      },
+    ],
   },
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-      }
-    })
+        'NODE_ENV': JSON.stringify('production'),
+      },
+    }),
   ],
   stats: {
-    colors: true
+    colors: true,
   },
-  devtool: 'source-map'
+  devtool: 'source-map',
  };

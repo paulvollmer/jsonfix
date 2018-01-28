@@ -1,6 +1,8 @@
 BIN = ./node_modules/.bin
 LINT_SRC = webpack.config.js cmd/jsonfix src test
 
+all: lint test
+
 lint:
 	@$(BIN)/eslint ${LINT_SRC}
 
