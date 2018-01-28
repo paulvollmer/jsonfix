@@ -1,15 +1,18 @@
 'use strict';
 
 /**
- * the error data structure we want to return.
+ * JsonLint error parser and data structure
  */
 class JsonLintError {
+  /**
+   * the error data structure we want to return.
+   */
   constructor() {
-    this.description = ''
-    this.line = ''
-    this.code = ''
-    this.expecting = ''
-    this.got = ''
+    this.description = '';
+    this.line = '';
+    this.code = '';
+    this.expecting = '';
+    this.got = '';
   }
 
   /**
@@ -26,6 +29,9 @@ class JsonLintError {
     this.code = errorLines[1];
     this.expecting = errorLines[3].split('Expecting ')[1].split(', got ')[0];
     this.got = errorLines[3].split(', got \'')[1];
+    // console.log('------------------------');
+    // console.log(this);
+    // console.log('------------------------');
     return this;
   }
 }

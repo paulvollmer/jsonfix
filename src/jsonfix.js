@@ -1,6 +1,6 @@
 'use strict';
 
-const jsonlintErrorParser = require('./jsonlinterrorparser');
+const JsonLintError = require('./jsonlinterror');
 const fix = require('./fix');
 
 /**
@@ -19,6 +19,7 @@ class JSONFix {
     this.totalTries = 0; // count the number of "JSONFixer" calls
     this.errorList = []; // all found and fixed bugs will be reported here.
     this.jsonlint = jsonlint; // the jsonlint instance
+    this.maximumTries = 100;
   }
 
   /**
@@ -56,15 +57,7 @@ class JSONFix {
         this.totalTries = 1;
         // TODO: JSONFix.errorList.push({});
       } else {
-        // optimize input source for bug detection...
-        let optimizedSrc1 = src.replace('{', '{\n');
-        let optimizedSrc2 = optimizedSrc1.replace('}', '\n}');
-
-        // TODO: remove whitespace
-        // TODO: remove java style comments
-        // console.log('inputOptimized',  this.inputOptimized);
-
-        this.tryFix(optimizedSrc2); // fix it :)
+        this.tryFix(this.normalize(src));
       }
     }
 
@@ -73,11 +66,35 @@ class JSONFix {
   }
 
   /**
-   * this function we call multiple times. (at the callbacks of the different fix functions)
+   * optimize input source for bug detection
+   *
    * @param {String} src - json data
+   * @return {String} normalized json data
+   */
+  normalize(src) {
+    let optimizedSrc1 = src.replace('{', '{\n');
+    let optimizedSrc2 = optimizedSrc1.replace('}', '\n}');
+    let optimizedSrc3 = optimizedSrc2.replace('",', '",\n');
+    // TODO: remove whitespace
+    // TODO: remove java style comments
+    return optimizedSrc3;
+  }
+
+  /**
+   * this function we call multiple times. (at the callbacks of the different fix functions)
+   *
+   * @param {String} src - json data
+   * @return {this} this JSONFix instance
    */
   tryFix(src) {
     this.totalTries++;
+
+    // stop infinite loops after a maximum number of tries
+    if (this.totalTries === this.maximumTries) {
+      this.wasFixed = false;
+      return this;
+    }
+
     // console.log('JSONTryFix totalTries =', this.totalTries, 'source:', src);
 
     // try to lint the source. we use this to get the jsonlint error and detect the bug.
@@ -88,7 +105,7 @@ class JSONFix {
       this.result = linted;
     } catch (e) {
       // save error to history
-      let err = jsonlintErrorParser(e.message);
+      let err = new JsonLintError().parse(e.message);
       this.errorList.push(err);
 
       // try to fix... check if fix method exists.
@@ -225,11 +242,6 @@ class JSONFix {
     //   fixParseError_CurlyBracket(input, err, cb);
     // };
 
-    // console.log('call fixParseError_CurlyBracket');
-    // console.log('input:', input)
-    // console.log('err:', err)
-    // console.log('cb:', cb);
-
     let inputLines = input.split('\n');
     // console.info('error at this line:', inputLines[err.line-1]);
 
@@ -255,6 +267,9 @@ class JSONFix {
       return fixed;
     } else if (err.expecting === '\'EOF\', \'}\', \':\', \',\', \']\'') {
       return input;
+    } else if (err.expecting === '\',\', \']\'') {
+      inputLines[err.line-1] += ']';
+      return inputLines.join('\n');
     }
   }
 
@@ -313,7 +328,7 @@ class JSONFix {
       if (inputLines[err.line-1].indexOf(':') === -1) {
         // console.log('cannot find colon');
 
-        err.message = 'missing :';
+        err.message = 'missing colon';
         // console.log(err.message);
         let tmpFixed = fix.missingColon(inputLines[err.line-1]);
         err.fix = tmpFixed;
@@ -334,7 +349,6 @@ class JSONFix {
 
     let fixedResult = inputLines.join('\n');
     // console.info('fixedResult: "'+fixedResult+'"');
-    // cb(fixedResult);
     return fixedResult;
   }
 
@@ -343,8 +357,8 @@ class JSONFix {
    * @param {Object} err - jsonlint error
    */
   tryFixParseErrorNUMBER(input, err) {
-    // DEBUG('call tryFixParseErrorNUMBER');
     // if (err.expecting === '\'EOF\', \'}\', \',\', \']\'') {
+    //
     // }
   }
 }

@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const JsonLintError = require('../src/jsonlinterrorparser');
+const JsonLintError = require('../src/jsonlinterror');
 
 const testerror = `Error: Parse error on line 1:
 {
