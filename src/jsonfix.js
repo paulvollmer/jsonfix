@@ -1,391 +1,354 @@
-/*!
- * jsonfix/src/jsonfix.js
- */
+'use strict';
 
-
-// this is only for debugging this crazy stuff
-var DEBUG_ACTIVE = false;
-function DEBUG() {
-  if(DEBUG_ACTIVE) {
-    var msg = [];
-    for (var i = 0; i < arguments.length; i++) {
-      msg.push(arguments[i]);
-    }
-    console.log('DEBUG> '+msg.join(' '));
-  }
-}
-
-
-// load jsonlint if not defined (server side stuff)
-if(typeof jsonlint === 'undefined') {
-  var jsonlint = require('jsonlint');
-}
-
+const jsonlintErrorParser = require('./jsonlinterrorparser');
+const fix = require('./fix');
 
 /**
- * main logic and data store
+ *
  */
-var JSONFix = {
-
-  /*
-   * variables
+class JSONFix {
+  /**
+   * @param {Object} jsonlint - the jsonlint dependency
    */
-  input: null,            // store the input data as string
-  inputOptimized: null,   // the optimized input data
-  isValid: null,          // if input is valid, set to true
-  wasFixed: null,         // set to true if source was successful fixed
-  message: null,          // a message about the fix process
-  result: null,           // store the fixed json data here
-  stats: {                // stats about the fix process...
-    totalTries: 0,        // count the number of "JSONFixer" calls
-    errorList: [],        // all found and fixed bugs will be reported here.
-  },
+  constructor(jsonlint) {
+    this.input = null; // store the input data as string
+    this.isValid = null; // if input is valid, set to true
+    this.wasFixed = null; // set to true if source was successful fixed
+    this.message = null; // a message about the fix process
+    this.result = null; // store the fixed json data here
+    this.totalTries = 0; // count the number of "JSONFixer" calls
+    this.errorList = []; // all found and fixed bugs will be reported here.
+    this.jsonlint = jsonlint; // the jsonlint instance
+  }
 
-  /*
+  /**
    * functions
+   * @param {String} src - json data
+   * @return {String} fixed json data
    */
-  process: function(src) {
-    DEBUG('JSONFix start processing...');
-
+  process(src) {
     // set the input
     this.input = src;
 
     // reset some variables
-    this.inputOptimized = null;
     this.isValid = null;
     this.wasFixed = null;
     this.message = null;
     this.result = null;
-    this.stats.totalTries = 0;
-    this.stats.errorList = [];
+    this.totalTries = 0;
+    this.errorList = [];
 
     // first check if source is valid...
     try {
-      var jsonParsed = JSON.parse(src);
+      let jsonParsed = JSON.parse(src);
       this.isValid = true;
       this.wasFixed = false;
       this.message = 'JSON is valid!';
       this.result = jsonParsed;
-    } catch(e) {
+    } catch (e) {
       this.isValid = false;
 
       // check if source is empty
-      if(src === '') {
+      if (src === '') {
         this.wasFixed = true;
         this.message = 'empty source detected...';
         this.result = {};
-        this.stats.totalTries = 1;
-        // TODO: JSONFix.stats.errorList.push({});
+        this.totalTries = 1;
+        // TODO: JSONFix.errorList.push({});
       } else {
         // optimize input source for bug detection...
-        var optimizedSrc1 = src.replace('{', '{\n');
-        var optimizedSrc2 = optimizedSrc1.replace('}', '\n}');
-        this.inputOptimized = optimizedSrc2;
+        let optimizedSrc1 = src.replace('{', '{\n');
+        let optimizedSrc2 = optimizedSrc1.replace('}', '\n}');
+
         // TODO: remove whitespace
         // TODO: remove java style comments
-        // var removedComments = removeComments(src);
         // console.log('inputOptimized',  this.inputOptimized);
-        JSONTryFix(optimizedSrc2); // fix it :)
+
+        this.tryFix(optimizedSrc2); // fix it :)
       }
     }
 
-    DEBUG(this.message);
-    return this.result;
+    // DEBUG(this.message);
+    return this;
   }
-};
 
-if(typeof module !== 'undefined') {
-  module.exports = JSONFix;
-}
+  /**
+   * this function we call multiple times. (at the callbacks of the different fix functions)
+   * @param {String} src - json data
+   */
+  tryFix(src) {
+    this.totalTries++;
+    // console.log('JSONTryFix totalTries =', this.totalTries, 'source:', src);
 
+    // try to lint the source. we use this to get the jsonlint error and detect the bug.
+    try {
+      let linted = this.jsonlint.parse(src);
+      this.wasFixed = true;
+      this.message = 'input was successfully fixed!';
+      this.result = linted;
+    } catch (e) {
+      // save error to history
+      let err = jsonlintErrorParser(e.message);
+      this.errorList.push(err);
 
-/**
- * jsonlintErrorParser
- *
- * die funktion parsed den error message string und
- * returned ein Error object
- */
-function jsonlintErrorParser(msg) {
-  errorLines = msg.split('\n');
-  // console.log('ERROR LINES:', errorLines);
+      // try to fix... check if fix method exists.
+      switch (err.description) {
+        case 'Parse error':
+          err.message = null;
+          err.fix = null;
+          this.tryFixParseError(src, err);
+          break;
+        default:
+          this.result = null;
+          this.message = 'cannot fix the error type "'+err.description+'"... sorry';
+          break;
+      }
+    }
+  }
 
-  // the error data structure we want to return.
-  var err = {
-    description: '',
-    line: '',
-    code: '',
-    expecting: '',
-    got: ''
-  };
-
-  err.description = errorLines[0].split(' on line ')[0];
-  err.line = errorLines[0].split('on line ')[1].split(':')[0];
-  err.code = errorLines[1];
-  err.expecting = errorLines[3].split('Expecting ')[1].split(', got ')[0];
-  err.got = errorLines[3].split(", got '")[1]; //.split("'")[0]
-  return err;
-}
-
-
-function removeComments(src) {
-  // TODO: ...
-  return result;
-}
-
-
-/**
- * this function we call multiple times. (at the callbacks of the different fix functions)
- */
-function JSONTryFix(src) {
-  JSONFix.stats.totalTries++;
-  DEBUG('JSONTryFix totalTries =', JSONFix.stats.totalTries, 'source:', src);
-
-  // try to lint the source. we use this to get the jsonlint error and detect the bug.
-  try {
-    var linted = jsonlint.parse(src);
-    // console.log('jsonlint', linted);
-    JSONFix.wasFixed = true;
-    JSONFix.message = 'input was successfully fixed!';
-    JSONFix.result = linted;
-  } catch(e) {
-    // save error to history
-    var err = jsonlintErrorParser(e.message);
-    // console.log("error object:", err);
-    JSONFix.stats.errorList.push(err);
-
-    // try to fix... check if fix method exists.
-    switch(err.description) {
-      case 'Parse error':
-        err.message = null;
-        err.fix = null;
-        JSONTryFixParseError(src, err, JSONTryFix);
+  /**
+   * we only fix parse errors...
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   */
+  tryFixParseError(input, err) {
+    // check the error.got string and choose a fixer
+    switch (err.got) {
+      case 'EOF\'': {
+        let fixedEOF = this.tryFixParseErrorEOF(input, err);
+        this.tryFix(fixedEOF);
         break;
+      }
+      case 'undefined\'': {
+        let tmp = this.tryFixParseErrorUndefined(input, err);
+        this.tryFix(tmp);
+        break;
+      }
+      case '}\'': {
+        let tmp = this.tryFixParseErrorCurlyBracket(input, err);
+        this.tryFix(tmp);
+        break;
+      }
+      case ':\'': {
+        let tmp = this.tryFixParseErrorColon(input, err);
+        this.tryFix(tmp);
+        break;
+      }
+      case 'STRING\'': {
+      // case "TRUE'":
+      // case "FALSE'":
+        let tmp = this.tryFixParseErrorSTRING(input, err);
+        this.tryFix(tmp);
+        break;
+      }
+      case 'NUMBER\'': {
+        let tmp = this.tryFixParseErrorNUMBER(input, err);
+        this.tryFix(tmp);
+        break;
+      }
       default:
-        // console.log('DEFAULT...');
-        JSONFix.result = null;
-        JSONFix.message = 'cannot fix the error type "'+err.description+'"... sorry';
-        break;
+        JSONFix.wasFixed = false;
+        JSONFix.message = 'cannot fix got="'+err.got+'" '+'expecting="'+err.expecting+'"';
+        throw new Error(JSONFix.message);
     }
   }
-}
 
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   * @return {String} fixed json data
+   */
+  tryFixParseErrorEOF(input, err) {
+    // console.log('call tryFixParseErrorEOF')
+    // console.log('input:', input)
+    // console.log('err:', err)
+    // console.log('cb:', cb);
 
-/**
- * we only fix parse errors...
- */
-function JSONTryFixParseError(input, err, cb) {
-  // console.log('call JSONTryFixParseError', input, err);
-  DEBUG('try to fix "'+err.got+'"');
-
-  // error got...
-  switch(err.got) {
-    case "EOF'":
-      JSONTryFixParseError_EOF(input, err, cb);
-      break;
-
-    case "undefined'":
-      JSONTryFixParseError_undefined(input, err, cb);
-      break;
-
-    case "}'":
-      JSONTryFixParseError_CurlyBracket(input, err, cb);
-      break;
-
-    case ":'":
-      JSONTryFixParseError_Colon(input, err, cb);
-      break;
-
-    case "STRING'":
-    // case "TRUE'":
-    // case "FALSE'":
-      JSONTryFixParseError_STRING(input, err, cb);
-      break;
-
-    case "NUMBER'":
-      JSONTryFixParseError_NUMBER(input, err, cb);
-      break;
-
-    default:
-      JSONFix.wasFixed = false;
-      JSONFix.message = 'cannot fix got="'+err.got+'" '+'expecting="'+err.expecting+'"';
-      console.error(JSONFix.message);
-      break;
-  }
-}
-
-
-function JSONTryFixParseError_EOF(input, err, cb) {
-  // check if last char is } or ]
-  var lastChar = input[input.length-1];
-  // console.warn('last char', lastChar);
-  if(lastChar !== '}' || lastChar !== ' ]') {
-
-    // check if input is object or array...
-    if(input[0] === '{') {
-      // console.warn('input is object');
-      input += '}';
-      err.message = 'missing } at end of source';
-      err.fix = input;
+    // check if last char is } or ]
+    let lastChar = input[input.length-1];
+    // console.warn('last char', lastChar);
+    if (lastChar !== '}' || lastChar !== ' ]') {
+      // check if input is object or array...
+      if (input[0] === '{') {
+        // console.warn('input is object');
+        input += '}';
+        err.message = 'missing } at end of source';
+        err.fix = input;
+      }
+      if (input[0] === '[') {
+        // console.warn('input is array');
+        input += ']';
+        err.message = 'missing ] at end of source';
+        err.fix = input;
+      }
     }
-    if(input[0] === '[') {
-      // console.warn('input is array');
-      input += ']';
-      err.message = 'missing ] at end of source';
-      err.fix = input;
-    }
-
+    return input;
   }
 
-  cb(input);
-}
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   * @return {String} fixed json data
+   */
+  tryFixParseErrorUndefined(input, err) {
+    // console.log('call fixParseError_undefined');
+    // console.log('input:', input)
+    // console.log('err:', err)
+    // console.log('cb:', cb);
 
-function JSONTryFixParseError_undefined(input, err, cb) {
-  DEBUG('call fixParseError_undefined');
+    let inputLines = input.split('\n');
+    // console.log('error at this line:', inputLines[err.line-1]);
+    let tmp = inputLines[err.line-1].split(',');
+    // console.log(tmp);
+    inputLines[err.line-1] = tmp[0]+'",';
 
-  var inputLines = input.split('\n');
-  // console.log('error at this line:', inputLines[err.line-1]);
-  var tmp = inputLines[err.line-1].split(',');
-  // console.log(tmp);
-  inputLines[err.line-1] = tmp[0]+'",';
-
-  var fixed = inputLines.join('\n');
-  // console.log('fixed: "'+fixed+'"');
-
-  cb(fixed);
-}
-
-function JSONTryFixParseError_CurlyBracket(input, err, cb) {
-  // JSONFix.message = 'TODO: fix {';
-
-  // if(err.expecting === "':'") {
-  //   console.log('} & :');
-  // } else if(err.expecting === "'STRING'") {
-  //     console.log('} & STRING');
-  // } else {
-  //   fixParseError_CurlyBracket(input, err, cb);
-  // };
-
-
-
-
-  DEBUG('call fixParseError_CurlyBracket');
-
-  var inputLines = input.split('\n');
-  // console.info('error at this line:', inputLines[err.line-1]);
-
-  if(err.expecting === "'STRING'") {
-    // console.log('too much "," ?');
-    // check if comma is last char
-    var totalchars = inputLines[err.line-1].length;
-    var lastChar = inputLines[err.line-1][totalchars-1];
-    // console.log('totalchars:', totalchars);
-    // console.log('lastChar:', lastChar);
-
-    if(lastChar === ',') {
-      // console.info('remove last char (,)');
-      // fix it...
-      inputLines[err.line-1] = inputLines[err.line-1].replace(',', '');
-    }
-
-    var fixed = inputLines.join('\n');
-    err.fix = fixed;
+    let fixed = inputLines.join('\n');
     // console.log('fixed: "'+fixed+'"');
 
-    cb(fixed);
+    // cb(fixed);
+    return fixed;
   }
-  else if(err.expecting === "'EOF', '}', ':', ',', ']'") {
-  }
-}
 
-function JSONTryFixParseError_Colon(input, err, cb) {
-  if(err.expecting === "'EOF', '}', ',', ']'") {
-    var firstChar = input[0];
-    var lastChar = input[input.length-1];
-    // console.log('firstChar', firstChar);
-    // console.log('lastChar', lastChar);
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   * @return {String} fixed json data
+   */
+  tryFixParseErrorCurlyBracket(input, err) {
+    // JSONFix.message = 'TODO: fix {';
 
-    // check if { is missing...
-    if(firstChar !== '{' && lastChar === '}') {
-      err.message = 'missing { at the beginning of the json';
-      var fixed = '{'+input;
+    // if(err.expecting === "':'") {
+    //   console.log('} & :');
+    // } else if(err.expecting === "'STRING'") {
+    //     console.log('} & STRING');
+    // } else {
+    //   fixParseError_CurlyBracket(input, err, cb);
+    // };
+
+    // console.log('call fixParseError_CurlyBracket');
+    // console.log('input:', input)
+    // console.log('err:', err)
+    // console.log('cb:', cb);
+
+    let inputLines = input.split('\n');
+    // console.info('error at this line:', inputLines[err.line-1]);
+
+    if (err.expecting === '\'STRING\'') {
+      // console.log('too much "," ?');
+      // check if comma is last char
+      let totalchars = inputLines[err.line-1].length;
+      let lastChar = inputLines[err.line-1][totalchars-1];
+      // console.log('totalchars:', totalchars);
+      // console.log('lastChar:', lastChar);
+
+      if (lastChar === ',') {
+        // console.info('remove last char (,)');
+        // fix it...
+        inputLines[err.line-1] = inputLines[err.line-1].replace(',', '');
+      }
+
+      let fixed = inputLines.join('\n');
       err.fix = fixed;
-      cb(fixed);
-    }
+      // console.log('fixed: "'+fixed+'"');
 
-    // check if [ is missing...
-    if(firstChar !== '[' && lastChar === ']') {
-      err.message = 'missing [ at the beginning of the json';
-      var fixed2 = '['+input;
-      err.fix = fixed2;
-      cb(fixed2);
-    }
-  }
-}
-
-function JSONTryFixParseError_STRING(input, err, cb) {
-  var inputLines = input.split('\n');
-  // console.log('inputLines:', inputLines);
-  // console.log('buggyCode:', inputLines[err.line-1]);
-
-  if(err.expecting === "'EOF', '}', ',', ']'") {
-    err.message = 'missing comma';
-    // console.log(err.messsage);
-    var fixed = fixMissingComma(inputLines[err.line-1]);
-    err.fix = fixed;
-    inputLines[err.line-1] = fixed;
-  }
-
-  else if(err.expecting === "'EOF', '}', ':', ',', ']'") {
-    // is colon missing?
-    if(inputLines[err.line-1].indexOf(":") === -1) {
-      // console.log('cannot find colon');
-
-      err.message = 'missing :';
-      // console.log(err.message);
-      var tmpFixed = fixMissingColon(inputLines[err.line-1]);
-      err.fix = tmpFixed;
-      inputLines[err.line-1] = tmpFixed;
-    }
-
-    // is comma missing?
-    if(inputLines[err.line-1].indexOf(",") === -1) {
-      // console.log('cannot find ,');
-      var fixed3 = fixMissingComma(inputLines[err.line-1]);
-      err.fix = fixed3;
-      inputLines[err.line-1] = fixed3;
+      // cb(fixed);
+      return fixed;
+    } else if (err.expecting === '\'EOF\', \'}\', \':\', \',\', \']\'') {
+      return input;
     }
   }
 
-  else {
-    JSONFix.message = 'cannot fix this ugly bug... sorry!';
-    JSONFix.wasFixed = false;
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   * @return {String} fixed json data
+   */
+  tryFixParseErrorColon(input, err) {
+    if (err.expecting === '\'EOF\', \'}\', \',\', \']\'') {
+      let firstChar = input[0];
+      let lastChar = input[input.length-1];
+      // console.log('firstChar', firstChar);
+      // console.log('lastChar', lastChar);
+
+      // check if { is missing...
+      if (firstChar !== '{' && lastChar === '}') {
+        err.message = 'missing { at the beginning of the json';
+        let fixed = '{'+input;
+        err.fix = fixed;
+        return fixed;
+      }
+
+      // check if [ is missing...
+      if (firstChar !== '[' && lastChar === ']') {
+        err.message = 'missing [ at the beginning of the json';
+        let fixed2 = '['+input;
+        err.fix = fixed2;
+        return fixed2;
+      }
+    }
+
+    if (err.expecting === '\'STRING\', \'NUMBER\', \'NULL\', \'TRUE\', \'FALSE\', \'{\', \'[\'') {
+      // multiple colon
+    }
   }
 
-  var fixedResult = inputLines.join('\n');
-  // console.info('fixedResult: "'+fixedResult+'"');
-  cb(fixedResult);
-  return fixedResult;
-}
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   * @return {String} fixed json data
+   */
+  tryFixParseErrorSTRING(input, err) {
+    let inputLines = input.split('\n');
+    // console.log('inputLines:', inputLines);
+    // console.log('buggyCode:', inputLines[err.line-1]);
 
-function JSONTryFixParseError_NUMBER(input, err, cb) {
-  DEBUG('call JSONTryFixParseError_NUMBER');
+    if (err.expecting === '\'EOF\', \'}\', \',\', \']\'') {
+      err.message = 'missing comma';
+      // console.log(err.messsage);
+      let fixed = fix.missingComma(inputLines[err.line-1]);
+      err.fix = fixed;
+      inputLines[err.line-1] = fixed;
+    } else if (err.expecting === '\'EOF\', \'}\', \':\', \',\', \']\'') {
+      // is colon missing?
+      if (inputLines[err.line-1].indexOf(':') === -1) {
+        // console.log('cannot find colon');
 
-  if(err.expecting === "'EOF', '}', ',', ']'") {
+        err.message = 'missing :';
+        // console.log(err.message);
+        let tmpFixed = fix.missingColon(inputLines[err.line-1]);
+        err.fix = tmpFixed;
+        inputLines[err.line-1] = tmpFixed;
+      }
 
+      // is comma missing?
+      if (inputLines[err.line-1].indexOf(',') === -1) {
+        // console.log('cannot find ,');
+        let fixed3 = fix.missingComma(inputLines[err.line-1]);
+        err.fix = fixed3;
+        inputLines[err.line-1] = fixed3;
+      }
+    } else {
+      JSONFix.message = 'cannot fix this ugly bug... sorry!';
+      JSONFix.wasFixed = false;
+    }
+
+    let fixedResult = inputLines.join('\n');
+    // console.info('fixedResult: "'+fixedResult+'"');
+    // cb(fixedResult);
+    return fixedResult;
+  }
+
+  /**
+   * @param {String} input - json data
+   * @param {Object} err - jsonlint error
+   */
+  tryFixParseErrorNUMBER(input, err) {
+    // DEBUG('call tryFixParseErrorNUMBER');
+    // if (err.expecting === '\'EOF\', \'}\', \',\', \']\'') {
+    // }
   }
 }
 
-
-// fix missing :
-function fixMissingColon(input) {
-  // console.info('call fixMissingColon', input);
-  var tmp = input.split('"');
-  var fixedLine = tmp[0]+'"'+tmp[1]+'"'+ ':'+ /* the fix */ tmp[2]+'"'+tmp[3]+'"'+tmp[4];
-  // console.info('fixed', fixedLine);
-  return fixedLine;
-}
-
-function fixMissingComma(input) {
-  // console.info('call fixMissingComma', input);
-  return input+',';
+if (typeof module !== 'undefined') {
+  module.exports = JSONFix;
 }
