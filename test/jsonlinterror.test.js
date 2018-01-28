@@ -1,16 +1,16 @@
 'use strict';
 
 const assert = require('assert');
-const jsonlintErrorParser = require('../src/jsonlinterrorparser');
+const JsonLintError = require('../src/jsonlinterrorparser');
 
 const testerror = `Error: Parse error on line 1:
 {
 -^
 Expecting 'STRING', '}', got 'EOF'`;
 
-describe('jsonlintErrorParser', () => {
+describe('JsonLintError', () => {
   it('should return the error as object:', () => {
-    let result = jsonlintErrorParser(testerror);
+    let result = new JsonLintError().parse(testerror);
     // console.log(result);
     assert.equal(result.description, 'Error: Parse error');
     assert.equal(result.line, '1');
