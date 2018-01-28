@@ -1,12 +1,19 @@
 BIN = ./node_modules/.bin
+LINT_SRC = webpack.config.js cmd/jsonfix src test
 
 lint:
-	@$(BIN)/eslint .
+	@$(BIN)/eslint ${LINT_SRC}
 
 lint-fix:
-	@$(BIN)/eslint --fix .
+	@$(BIN)/eslint --fix ${LINT_SRC}
 
 test:
-	@$(BIN)/mocha
+	@$(BIN)/mocha test/*.test.js
 
-.PHONY: lint lint-fix test
+build:
+	@$(BIN)/webpack --progress -p
+
+clean:
+	rm -rf build
+
+.PHONY: lint lint-fix test build clean
