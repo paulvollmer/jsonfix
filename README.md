@@ -18,10 +18,10 @@ cd into the directory
 
 fix some broken json data
 
-    ./cli test/fixture/broken.json
+    ./cmd/jsonfix test/fixture/broken.json
 
 ## At the Browser
-You can find a demo at http://paulvollmer.github.io/jsonfix/web
+You can find a demo at https://paulvollmernet/jsonfix/web
 
 
 ## Author

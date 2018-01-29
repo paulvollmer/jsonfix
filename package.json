@@ -1,6 +1,6 @@
 {
   "name": "jsonfix",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "jsonfix tool",
   "keywords": [
     "jsonfix",
@@ -16,21 +16,26 @@
   "bugs": {
     "url": "https://github.com/paulvollmer/jsonfix/issues"
   },
-  "homepage": "https://github.com/paulvollmer/jsonfix",
+  "homepage": "https://paulvollmer.net/jsonfix/web",
   "scripts": {
     "lint": "make lint",
     "lint-fix": "make lint-fix",
     "test": "make test"
   },
   "bin": {
-    "jsonfix": "./cli"
+    "jsonfix": "./cmd/jsonfix"
   },
   "dependencies": {
     "jsonlint": "~1.6.2"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
     "eslint": "^4.16.0",
     "eslint-config-google": "^0.9.1",
-    "mocha": "~2.2.4"
+    "mocha": "~2.2.4",
+    "serve": "^6.4.9",
+    "webpack": "^3.10.0"
   }
 }
