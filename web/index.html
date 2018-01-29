@@ -36,7 +36,7 @@
 
       <div class="row" style="margin-top: 70px;">
         <div class="col-md-6">
-          <b>Input Source <button class="btn btn-info btn-xs" onClick="jsonfix.update()">Process</button></b>
+          <b>Input Source</b>
           <textarea id="source">{
   "hello": "broken json"
   "different": "bugs",
@@ -48,7 +48,11 @@
           <textarea id="result"></textarea>
         </div>
       </div>
-
+      <div class="row">
+         <div class="col-md-12">
+           <button class="btn btn-info btn-l" onClick="jsonfix.update()">Process</button>
+         </div>
+      </div>
       <div id="result-container">
 
         <div class="row">
