@@ -1,63 +1,86 @@
+'use strict';
+
 /**
  * jsonfix/app.js
  * this is code for the web frontend.
  */
 
+const JSONFix = require('../src/jsonfix');
+let editorSource;
+let editorResult;
+
+window.onload = function() {
+  editorSource = CodeMirror.fromTextArea(document.getElementById('source'), {
+    lineNumbers: true,
+    mode: 'application/json',
+  });
+  editorResult = CodeMirror.fromTextArea(document.getElementById('result'), {
+    lineNumbers: true,
+    mode: 'application/json',
+  });
+};
+
 function update() {
-  JSONFix.process(document.getElementById('source').value);
+  let jsonfix = new JSONFix(jsonlint);
+  let fixed = jsonfix.process(editorSource.getDoc().getValue());
 
-  if (JSONFix.isValid) {
-    setResult(JSONFix.input);
-    setResultMessage(JSONFix.message, 'pass');
+  if (fixed.isValid) {
+    editorResult.getDoc().setValue(fixed.input);
+    setResultMessage(fixed.message, 'pass');
   } else {
-    // if(JSONFix.wasFixed === true) {
-
-      setResult(JSON.stringify(JSONFix.result, null, 2));
-      setResultMessage(JSONFix.message, 'fixed');
-
-    // } else {
-    //   setResult('');
-    //   setResultMessage(JSONFixResult.error, 'fail');
-    // }
+    if(fixed.wasFixed === true) {
+      editorResult.getDoc().setValue(JSON.stringify(fixed.result, null, 2));
+      setResultMessage(fixed.message, 'fixed');
+    } else {
+      editorResult.getDoc().setValue('');
+      setResultMessage(fixed.message, 'fail');
+    }
   }
 
-  setResultData(JSONFix);
-  setResultViz(JSONFix.stats);
-}
+  // document.getElementById('result-container').style.visibility = ''
 
-function setResult(text) {
-  var result = document.getElementById('result');
-  result.innerHTML = text;
+  setResultData(fixed);
+  setResultViz(fixed);
 }
 
 function setResultMessage(text, type) {
-  var resultMessage = document.getElementById('result-message');
+  let resultMessage = document.getElementById('result-message');
   resultMessage.innerHTML = text;
   resultMessage.className = type;
 }
 
 function setResultData(data) {
-  var resultData = document.getElementById('result-data');
-  resultData.innerHTML = '<pre>'+JSON.stringify(data, null, 2)+'</pre>';
+  console.log(data);
+  let tmpData = {
+    input: data.input,
+    isValid: data.isValid,
+    wasFixed: data.wasFixed,
+    message: data.message,
+    result: data.result,
+    totalTries: data.totalTries,
+    errorList: data.errorList,
+  };
+  let resultData = document.getElementById('result-data');
+  resultData.innerHTML = '<pre>'+JSON.stringify(tmpData, null, 2)+'</pre>';
 }
 
-function setResultViz(stats) {
-  var resultViz = document.getElementById('result-viz');
-  var text = ''
-  text += '<p>Total number of tries: '+stats.totalTries+'</p>'
-
-  for (var i = 0; i < stats.errorList.length; i++) {
-    text += '<div>'
-
-    text += '<p>'
-    text += '<b>' + (i+1) + '. Fix</b>'
-    text += ' expecting: <code>' + stats.errorList[i].expecting + '</code>'
-    text += ' got: <code>' + stats.errorList[i].got + '</code>'
-    text += '</p>'
-
-    text += '<pre>' + stats.errorList[i].fix + '</pre>'
-    text += '</div>'
+function setResultViz(data) {
+  let resultViz = document.getElementById('result-viz');
+  let text = '';
+  text += '<p>Total number of tries: '+data.totalTries+'</p>';
+  for (let i = 0; i < data.errorList.length; i++) {
+    text += '<div>';
+    text += '<p>';
+    text += '<b>' + (i+1) + '. Fix</b>';
+    text += ' expecting: <code>' + data.errorList[i].expecting + '</code>';
+    text += ' got: <code>' + data.errorList[i].got + '</code>';
+    text += '</p>';
+    text += '<pre>' + data.errorList[i].fix + '</pre>';
+    text += '</div>';
   }
-
   resultViz.innerHTML = text;
 }
+
+window.jsonfix = {
+  update: update,
+};

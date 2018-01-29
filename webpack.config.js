@@ -4,10 +4,10 @@ const path = require('path');
 const webpack = require('webpack');
 
  module.exports = {
-  entry: './src/jsonfix.js',
+  entry: './web/app.js',
   output: {
-    path: path.resolve(__dirname, 'build'),
-    filename: 'main.build.js',
+    path: path.resolve(__dirname, 'web/build'),
+    filename: 'app.build.js',
   },
   module: {
     loaders: [

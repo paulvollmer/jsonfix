@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/paulvollmer/jsonfix/issues"
   },
-  "homepage": "https://github.com/paulvollmer/jsonfix",
+  "homepage": "https://paulvollmer.net/jsonfix/web",
   "scripts": {
     "lint": "make lint",
     "lint-fix": "make lint-fix",
@@ -35,6 +35,7 @@
     "eslint": "^4.16.0",
     "eslint-config-google": "^0.9.1",
     "mocha": "~2.2.4",
+    "serve": "^6.4.9",
     "webpack": "^3.10.0"
   }
 }

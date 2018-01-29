@@ -16,6 +16,9 @@ build:
 	@$(BIN)/webpack --progress -p
 
 clean:
-	rm -rf build
+	rm -rf web/build
 
-.PHONY: lint lint-fix test build clean
+serve:
+	@$(BIN)/serve
+
+.PHONY: lint lint-fix test build clean serve
