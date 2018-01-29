@@ -21,7 +21,7 @@ fix some broken json data
     ./cmd/jsonfix test/fixture/broken.json
 
 ## At the Browser
-You can find a demo at https://paulvollmernet/jsonfix/web
+You can find a demo at https://paulvollmer.net/jsonfix/web
 
 
 ## Author
