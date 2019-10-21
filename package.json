@@ -35,7 +35,7 @@
     "eslint": "^4.16.0",
     "eslint-config-google": "^0.9.1",
     "mocha": "~2.2.4",
-    "serve": "^6.4.9",
+    "serve": "^11.2.0",
     "webpack": "^3.10.0"
   }
 }
