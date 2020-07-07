@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+'use strict';
+
+let fs = require('fs');
+let JSONFix = require('../src/jsonfix');
+
+if (process.argv.length === 2) {
+  process.stderr.write('missing input file\n');
+  process.exit(1);
+} else if (process.argv.length === 3) {
+  let filepath = process.argv[2];
+  fs.readFile(filepath, {encoding: 'utf8'}, function(err, data) {
+    if (err !== null) {
+      process.stderr.write('cannot read file "'+process.argv[2]+'"\n');
+      process.exit(1);
+    } else {
+      let result = JSONFix.process(data);
+
+      // debug stuff
+      // console.log('============');
+      // console.log('isValid    = '+JSONFix.isValid);
+      // console.log('wasFixed   = '+JSONFix.wasFixed);
+      // console.log('message    = '+JSONFix.message);
+      // console.log('totalTries = '+JSONFix.stats.totalTries);
+      // console.log(JSON.stringify(JSONFix, null, 2));
+      // console.log('============');
+
+      process.stdout.write(JSON.stringify(result, null, 2)+'\n');
+    }
+  });
+}
